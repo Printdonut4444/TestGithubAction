@@ -11,24 +11,15 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-     - name: Checkout code
-       uses: actions/checkout@v4
-       with:
-          ref: main # ดึงประวัติทั้งหมดเพื่อให้ merge/diff ได้
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-     - name: Sync changes from feature
-       run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git fetch origin feature
-          git merge origin/feature -- .
-
-     - name: Create Pull Request
-       uses: peter-evans/create-pull-request@v6
-       with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "docs: update from bot"
-          title: "PR: อัปเดตไฟล์จากบอท"
-          body: "บอทสร้างไฟล์ bot-update.txt ให้แล้ว"
-          branch: master-sync-temp
-          base: main
+      - name: Create Pull Request
+        # ใช้ Action ตัวนี้แทน (ไม่ต้องเขียนสคริปต์ Git เองให้ Error)
+        uses: repo-sync/pull-request@v2
+        with:
+          source_branch: "feature"
+          destination_branch: "main"
+          pr_title: "PR: รวมงานจากเครื่องของคุณ"
+          pr_body: "สร้างอัตโนมัติจาก GitHub Action"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
