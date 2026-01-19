@@ -14,14 +14,14 @@ jobs:
      - name: Checkout code
        uses: actions/checkout@v4
        with:
-          fetch-depth: 0 # ดึงประวัติทั้งหมดเพื่อให้ merge/diff ได้
+          ref: main # ดึงประวัติทั้งหมดเพื่อให้ merge/diff ได้
 
      - name: Sync changes from feature
        run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          # ดึงโค้ดล่าสุดจาก feature มาทับในจังหวะที่บอทรัน
-          git merge origin/feature --no-edit
+          git fetch origin feature:feature
+          git merge origin/feature -- .
 
      - name: Create Pull Request
        uses: peter-evans/create-pull-request@v6
