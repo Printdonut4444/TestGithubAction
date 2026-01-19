@@ -2,8 +2,7 @@ name: Auto Create Pull Request
 on:
   push:
     branches:
-      - feature
-      
+      - 'feature'
 
 jobs:
   create-pull-request:
@@ -16,7 +15,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create Pull Request
-        # ใช้ Action ตัวนี้แทน (ไม่ต้องเขียนสคริปต์ Git เองให้ Error)
         uses: repo-sync/pull-request@v2
         with:
           source_branch: "feature"
