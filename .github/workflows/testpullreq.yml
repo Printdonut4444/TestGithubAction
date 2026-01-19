@@ -13,7 +13,9 @@ jobs:
     steps:
      - name: Checkout code
        uses: actions/checkout@v4
-
+       with:
+          fetch-depth: 0 # ดึงประวัติทั้งหมดเพื่อให้ merge/diff ได้
+    
      - name: Create Pull Request
        uses: peter-evans/create-pull-request@v6
        with:
