@@ -14,12 +14,6 @@ jobs:
      - name: Checkout code
        uses: actions/checkout@v4
 
-      # --- เพิ่มส่วนนี้เพื่อให้บอทสร้างไฟล์ใหม่ทุกครั้งที่รัน ---
-     - name: Make changes for PR
-       run: |
-          date > bot-update.txt
-          echo "Updated by GitHub Action" >> bot-update.txt
-
      - name: Create Pull Request
        uses: peter-evans/create-pull-request@v6
        with:
