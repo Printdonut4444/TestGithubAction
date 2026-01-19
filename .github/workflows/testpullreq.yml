@@ -1,21 +1,26 @@
-name: Automatically create / update pull request
-
+name: Auto Create Pull Request
 on:
   push:
-    branches-ignore:
-      - "main"
+    branches:
+      - feature
 
 jobs:
-  create_pr_repo_sync:
+  create-pull-request:
     runs-on: ubuntu-latest
+    permissions: 
+      contents: write
+      pull-requests: write
     steps:
-      - uses: actions/checkout@v3
-      - name: Create pull request
-        id: open-pr
-        uses: repo-sync/pull-request@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
         with:
-          destination_branch: "main"
-          pr_title: "feat: PLACEHOLDER TITLE"
-          pr_template: ".github/PULL_REQUEST_TEMPLATE.md"
-          pr_reviewer: "paigen11"
-          pr_draft: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: update from local"
+          title: "PR: รวบรวมงานจากเครื่องของคุณ"
+          body: "Pull Request นี้สร้างขึ้นโดยอัตโนมัติจาก GitHub Action"
+          branch: master-sync-temp # บอทจะสร้าง branch พักไว้ให้
+          base: main # merge เข้า branch หลัก
+          
