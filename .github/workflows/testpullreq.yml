@@ -11,16 +11,21 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+     - name: Checkout code
+       uses: actions/checkout@v4
 
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
-        with:
+      # --- เพิ่มส่วนนี้เพื่อให้บอทสร้างไฟล์ใหม่ทุกครั้งที่รัน ---
+     - name: Make changes for PR
+       run: |
+          date > bot-update.txt
+          echo "Updated by GitHub Action" >> bot-update.txt
+
+     - name: Create Pull Request
+       uses: peter-evans/create-pull-request@v6
+       with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "docs: update from local"
-          title: "PR: รวบรวมงานจากเครื่องของคุณ"
-          body: "Pull Request นี้สร้างขึ้นโดยอัตโนมัติจาก GitHub Action"
-          branch: master-sync-temp # บอทจะสร้าง branch พักไว้ให้
-          base: main # merge เข้า branch หลัก
-          
+          commit-message: "docs: update from bot"
+          title: "PR: อัปเดตไฟล์จากบอท"
+          body: "บอทสร้างไฟล์ bot-update.txt ให้แล้ว"
+          branch: master-sync-temp
+          base: main
