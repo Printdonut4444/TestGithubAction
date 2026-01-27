@@ -14,7 +14,7 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          const projectNumber = 3; // 👈 เปลี่ยนเป็น Project ของคุณ
+          const projectNumber = 9; // 👈 เปลี่ยนเป็น Project ของคุณ
           const statusFieldName = "Status";
 
           const owner = context.repo.owner;
