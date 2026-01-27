@@ -22,9 +22,3 @@ jobs:
           pr_title: "PR: รวมงานจากเครื่องของคุณ"
           pr_body: "สร้างอัตโนมัติจาก GitHub Action"
           github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Enable Auto Merge
-        uses: alexwilson/enable-github-automerge-action@main
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-  
