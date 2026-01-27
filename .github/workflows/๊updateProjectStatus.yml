@@ -3,6 +3,7 @@ name: Update Project Status
 on:
   pull_request:
     types: [opened, reopened, closed]
+  workflow_dispatch:
 
 jobs:
   update-project:
