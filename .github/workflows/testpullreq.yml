@@ -18,7 +18,7 @@ jobs:
         uses: repo-sync/pull-request@v2
         with:
           source_branch: "feature"
-          destination_branch: "main"
+          destination_branch: "Donut"
           pr_title: "PR: รวมงานจากเครื่องของคุณ"
           pr_body: "สร้างอัตโนมัติจาก GitHub Action"
           github_token: ${{ secrets.GITHUB_TOKEN }}
