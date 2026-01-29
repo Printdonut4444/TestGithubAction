@@ -1,2 +1,2 @@
 chore: test auto 
-ลองใหม่
+ลองใหม่ test Test
