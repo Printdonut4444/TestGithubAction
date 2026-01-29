@@ -1,2 +1,2 @@
 chore: test auto 
-ลองใหม่ test Test
+รอบสาม test pull and merge
