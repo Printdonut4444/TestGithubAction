@@ -22,4 +22,3 @@ jobs:
           pr_title: "PR: รวมงานจากเครื่องของคุณ"
           pr_body: "สร้างอัตโนมัติจาก GitHub Action"
           github_token: ${{ secrets.GITHUB_TOKEN }}
-  
