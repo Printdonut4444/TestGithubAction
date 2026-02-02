@@ -1,4 +1,4 @@
-name: "Robot: Auto Delete Branch"
+name: "Auto Delete Branch"
 
 on:
   # pull_request:

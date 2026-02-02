@@ -1,4 +1,4 @@
-name: "Robot: Manual Delete (Enhanced)"
+name: "Manual Delete (Enhanced)"
 
 on:
   workflow_dispatch:
