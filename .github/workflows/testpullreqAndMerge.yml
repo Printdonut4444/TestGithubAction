@@ -3,7 +3,7 @@ on:
   push:
     branches-ignore:
       - 'main'
-      - 'Dev'
+      - 'Develop'
     
 jobs:
   create-and-merge:
