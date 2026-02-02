@@ -1,0 +1,13 @@
+name: Run every minute
+
+on:
+  schedule:
+    - cron: '1 * * * *'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say hello
+        run: echo "รันทุก 1 นาที ⏱️"
