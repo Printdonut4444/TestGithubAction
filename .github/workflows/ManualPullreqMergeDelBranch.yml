@@ -1,10 +1,12 @@
-name: Auto Create Pull Request and Merge PR
+name: Manual Create PR/Merge PR And Del Branch
 on:
-  push:
-    branches-ignore:
-      - 'main'
-      - 'Develop'
-      - 'Donut'
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: "เลือก branch ปลายทางที่จะ merge"
+        required: true
+        default: "main"
+        type: string
 jobs:
   create-and-merge:
     runs-on: ubuntu-latest
@@ -21,9 +23,9 @@ jobs:
         uses: repo-sync/pull-request@v2
         with:
           source_branch: ${{ github.ref_name }}
-          destination_branch: "main"
-          pr_title: "PR: รวมงานจากเครื่องของคุณ"
-          pr_body: "สร้างและรวมร่างอัตโนมัติโดย GitHub Action"
+          destination_branch: ${{ inputs.target_branch }}
+          pr_title: "PR: รวมงานจาก ${ { github.ref_name } }"
+          pr_body: "สร้างอัตโนมัติ → merge ไปที่ ${{ inputs.target_branch }}"
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       # ขั้นตอนตรวจสอบ: เช็คว่ามีของใหม่ไหม?
@@ -46,7 +48,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # ใช้รหัสผ่านของระบบ
         run: |
           echo "กำลังทำการ Merge PR หมายเลข ${{ steps.cpr_step.outputs.pr_number }}..."
-          # ใช้คำสั่ง gh (GitHub CLI) เพื่อทำการ Merge เข้ากิ่ง main
+          # ใช้คำสั่ง gh (GitHub CLI) เพื่อทำการ Merge เข้ากิ่ง ${{ inputs.target_branch }}
           gh pr merge ${{ steps.cpr_step.outputs.pr_number }} --merge --auto
   # เพิ่มส่วนนี้ เหมือนให้ไฟล์นี้สามารถโทรหา auto delete เมื่อcreate-and-mergeทำงานเสร็จ
   call-delete-job:
