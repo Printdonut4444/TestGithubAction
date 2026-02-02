@@ -1,2 +1,3 @@
 chore: test auto 
-รอบสาม test pull and merge
+รอบสาม test pull and me
+ทดสอบการทำ merge กับ delete branch
