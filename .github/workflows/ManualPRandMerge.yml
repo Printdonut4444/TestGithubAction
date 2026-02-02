@@ -1,4 +1,4 @@
-name: Auto Create Pull Request and Merge PR
+name: Manual Create Pull Request and Merge PR
 on:
   workflow_dispatch:
     inputs:
