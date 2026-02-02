@@ -1,8 +1,8 @@
 name: "Robot: Auto Delete Branch"
 
 on:
-  pull_request:
-    types: [closed]
+  # pull_request:
+  #   types: [closed]
   workflow_call: # เพิ่มเข้ามาเหมือนรอให้คนมาโทร เพื่อทำหน้าที่
 
 jobs:
