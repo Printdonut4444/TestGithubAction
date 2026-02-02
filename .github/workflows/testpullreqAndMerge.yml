@@ -4,7 +4,7 @@ on:
     branches-ignore:
       - 'main'
       - 'Develop'
-    
+      - 'Donut'
 jobs:
   create-and-merge:
     runs-on: ubuntu-latest
