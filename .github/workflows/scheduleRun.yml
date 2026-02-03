@@ -10,4 +10,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Say hello
-        run: echo "รันทุก 1 นาที ⏱️"
+        run: echo "รันทุก 15 นาที ⏱️"
