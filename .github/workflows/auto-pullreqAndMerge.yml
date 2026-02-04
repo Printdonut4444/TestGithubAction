@@ -21,8 +21,8 @@ jobs:
         id: cpr_step   # <--- ต้องมี ID เพื่อใช้อ้างอิงตอน Merge
         uses: repo-sync/pull-request@v2
         with:
-          source_branch: ${{ github.ref_name }}
-          destination_branch: "main"
+          source_branch: ${{ github.ref_name }} # ไปดึงชื่อสาขาที่เพิ่ง push มา
+          destination_branch: "Develop"
           pr_title: "PR: รวมงานจากเครื่องของคุณ"
           pr_body: "สร้างและรวมร่างอัตโนมัติโดย GitHub Action"
           github_token: ${{ secrets.GITHUB_TOKEN }}

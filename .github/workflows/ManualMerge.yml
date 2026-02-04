@@ -16,6 +16,13 @@ on:
           - squash
           - merge
           - rebase
+      delete_branch:
+        description: 'ลบสาขาหลังการรวมหรือไม่?'
+        required: true
+        type: choice
+        options:
+          - yes
+          - no
 
 permissions:
   pull-requests: write
@@ -41,3 +48,8 @@ jobs:
         run: |
           gh pr merge ${{ github.event.inputs.pr_number }} \
             --${{ github.event.inputs.merge_method }}
+  call-delete-job:
+      needs: manual-merge
+      if: github.event.inputs.delete_branch == 'yes'
+      uses: ./.github/workflows/auto-delete.yml # ที่อยู่
+      secrets: inherit
