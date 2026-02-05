@@ -1,0 +1,62 @@
+name: Advanced Project Automation
+
+on:
+  issues:
+    types: [opened, assigned, closed, reopened]
+  pull_request:
+    types: [opened, ready_for_review]
+
+env:
+  GH_TOKEN: ${{ secrets.PROJECTTOKEN }}
+  PROJECT_OWNER: "Printdonut4444"
+  owner-type: user 
+  PROJECT_NUMBER: 3  # เปลี่ยนเป็นเลข Project ของคุณ
+
+jobs:
+  manage_project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Project Data and Item ID
+        id: owner_type
+        run: |
+          # 1. ดึง Project ID
+          project_id=$(gh project list --owner "$PROJECT_OWNER" --format json -q ".[] | select(.number == $PROJECT_NUMBER) | .id")
+          echo "PROJECT_ID=$project_id" >> $GITHUB_ENV
+
+          # 2. ดึง Issue/PR URL
+          target_url="${{ github.event.issue.html_url || github.event.pull_request.html_url }}"
+
+          # 3. เพิ่มเข้าโปรเจกต์ (ถ้ามีอยู่แล้วมันจะส่งค่าเดิมกลับมา)
+          item_id=$(gh project item-add $PROJECT_NUMBER --owner "$PROJECT_OWNER" --url "$target_url" --format json -q '.id')
+          echo "ITEM_ID=$item_id" >> $GITHUB_ENV
+
+          # 4. ดึง ID ของฟิลด์ Status และ Option IDs (Todo, In Progress, Done)
+          # ขั้นตอนนี้สำคัญมาก เพราะแต่ละโปรเจกต์มี ID ไม่เหมือนกัน
+          status_field_id=$(gh project field-list $PROJECT_NUMBER --owner "$PROJECT_OWNER" --format json -q '.[] | select(.name=="Status") | .id')
+          echo "STATUS_FIELD_ID=$status_field_id" >> $GITHUB_ENV
+
+      - name: Move to "In Progress" (On Assigned or PR Opened)
+        if: |
+          github.event.action == 'assigned' || 
+          (github.event_name == 'pull_request' && github.event.action == 'opened')
+        run: |
+          # หา ID ของคำว่า "In Progress"
+          option_id=$(gh project field-list $PROJECT_NUMBER --owner "$PROJECT_OWNER" --format json -q ".[] | select(.name==\"Status\") | .options[] | select(.name==\"In Progress\") | .id")
+          
+          # สั่งอัปเดตสถานะ
+          gh project item-edit --id ${{ env.ITEM_ID }} --project-id ${{ env.PROJECT_ID }} --field-id ${{ env.STATUS_FIELD_ID }} --single-select-option-id $option_id
+
+      - name: Move to "Done" (On Issue Closed)
+        if: github.event.action == 'closed'
+        run: |
+          # หา ID ของคำว่า "Done"
+          option_id=$(gh project field-list $PROJECT_NUMBER --owner "$PROJECT_OWNER" --format json -q ".[] | select(.name==\"Status\") | .options[] | select(.name==\"Done\") | .id")
+          
+          # สั่งอัปเดตสถานะ
+          gh project item-edit --id ${{ env.ITEM_ID }} --project-id ${{ env.PROJECT_ID }} --field-id ${{ env.STATUS_FIELD_ID }} --single-select-option-id $option_id
+
+      - name: Move back to "Todo" (On Reopened)
+        if: github.event.action == 'reopened'
+        run: |
+          option_id=$(gh project field-list $PROJECT_NUMBER --owner "$PROJECT_OWNER" --format json -q ".[] | select(.name==\"Status\") | .options[] | select(.name==\"Todo\") | .id")
+          gh project item-edit --id ${{ env.ITEM_ID }} --project-id ${{ env.PROJECT_ID }} --field-id ${{ env.STATUS_FIELD_ID }} --single-select-option-id $option_id
