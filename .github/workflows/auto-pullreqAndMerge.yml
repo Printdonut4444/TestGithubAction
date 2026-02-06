@@ -4,7 +4,8 @@ on:
     branches-ignore:
       - 'main'
       - 'Develop'
-      # - 'Donut'
+      - 'Donut'
+      - 'testAuto'
     
 jobs:
   create-and-merge:

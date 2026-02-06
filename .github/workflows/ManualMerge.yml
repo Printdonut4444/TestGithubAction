@@ -11,6 +11,7 @@ on:
       merge_method:
         description: 'วิธี merge'
         required: true
+        default: 'merge'
         type: choice
         options:
           - merge
@@ -19,6 +20,7 @@ on:
       delete_branch:
         description: 'ลบสาขาหลังการรวมหรือไม่?'
         required: true
+        default: 'no'
         type: choice
         options:
           - no
