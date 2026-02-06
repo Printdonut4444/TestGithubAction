@@ -5,6 +5,7 @@ on:
       - 'main'
       - 'Develop'
       - 'Donut'
+      - 'testAuto'
     
 jobs:
   create-and-merge:

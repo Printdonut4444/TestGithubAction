@@ -11,6 +11,7 @@ on:
       merge_method:
         description: 'วิธี merge'
         required: true
+        default: 'merge'
         type: choice
         options:
           - squash
@@ -19,6 +20,7 @@ on:
       delete_branch:
         description: 'ลบสาขาหลังการรวมหรือไม่?'
         required: true
+        default: 'no'
         type: choice
         options:
           - yes
@@ -53,8 +55,9 @@ jobs:
       if: github.event.inputs.delete_branch == 'yes'
       uses: ./.github/workflows/auto-delete.yml # ที่อยู่
       secrets: inherit
-  call-closed-PJ:
-      needs: manual-merge
-      # if: github.event.inputs.delete_branch == 'yes'
-      uses: ./.github/workflows/auto-manage-project.yml # ที่อยู่
-      secrets: inherit
+
+  # call-closed-PJ:
+  #     needs: manual-merge
+  #     # if: github.event.inputs.delete_branch == 'yes'
+  #     uses: ./.github/workflows/auto-manage-project.yml # ที่อยู่
+  #     secrets: inherit
