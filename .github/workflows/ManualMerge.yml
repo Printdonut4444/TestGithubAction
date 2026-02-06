@@ -14,8 +14,8 @@ on:
         default: 'merge'
         type: choice
         options:
-          - squash
           - merge
+          - squash
           - rebase
       delete_branch:
         description: 'ลบสาขาหลังการรวมหรือไม่?'
@@ -23,13 +23,14 @@ on:
         default: 'no'
         type: choice
         options:
-          - yes
           - no
+          - yes
 
 permissions:
   pull-requests: write
   contents: write
-
+  repository-projects: write
+  
 jobs:
   manual-merge:
     runs-on: ubuntu-latest
@@ -55,7 +56,6 @@ jobs:
       if: github.event.inputs.delete_branch == 'yes'
       uses: ./.github/workflows/auto-delete.yml # ที่อยู่
       secrets: inherit
-
   # call-closed-PJ:
   #     needs: manual-merge
   #     # if: github.event.inputs.delete_branch == 'yes'
