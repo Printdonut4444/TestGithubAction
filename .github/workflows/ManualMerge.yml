@@ -13,21 +13,22 @@ on:
         required: true
         type: choice
         options:
-          - squash
           - merge
+          - squash
           - rebase
       delete_branch:
         description: 'ลบสาขาหลังการรวมหรือไม่?'
         required: true
         type: choice
         options:
-          - yes
           - no
+          - yes
 
 permissions:
   pull-requests: write
   contents: write
-
+  repository-projects: write
+  
 jobs:
   manual-merge:
     runs-on: ubuntu-latest
