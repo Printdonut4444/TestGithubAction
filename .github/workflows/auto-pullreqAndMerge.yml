@@ -4,7 +4,7 @@ on:
     branches-ignore:
       - 'main'
       - 'Develop'
-      - 'Donut'
+      # - 'Donut'
     
 jobs:
   create-and-merge:
@@ -12,6 +12,8 @@ jobs:
     permissions: 
       contents: write
       pull-requests: write
+    outputs:
+      pr_number: ${{ steps.cpr_step.outputs.pr_number }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,10 +23,12 @@ jobs:
         id: cpr_step   # <--- ต้องมี ID เพื่อใช้อ้างอิงตอน Merge
         uses: repo-sync/pull-request@v2
         with:
-          source_branch: ${{ github.ref_name }} # ไปดึงชื่อสาขาที่เพิ่ง push มา
+          source_branch: ${{ github.ref_name }} #  ไปดึงชื่อสาขาที่เพิ่ง push มา
           destination_branch: "Develop"
           pr_title: "PR: รวมงานจากเครื่องของคุณ"
-          pr_body: "สร้างและรวมร่างอัตโนมัติโดย GitHub Action"
+          pr_body: |
+            closes #${{ github.ref_name }}
+            สร้างและรวมร่างอัตโนมัติโดย GitHub Action
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       # ขั้นตอนตรวจสอบ: เช็คว่ามีของใหม่ไหม?
@@ -38,17 +42,17 @@ jobs:
           fi
 
       # ขั้นตอนที่ 2: สั่ง Merge ทันที (นี่คือส่วนที่เพิ่มเข้ามา)
-      - name: Merge Pull Request
-        # บรรทัดนี้คือหัวใจสำคัญ! 
-        # "ถ้า steps.cpr_step มีเลข PR ส่งมา (แปลว่าไม่ซ้ำ) -> ให้ทำ"
-        # "ถ้าไม่มีเลขส่งมา (แปลว่าซ้ำ) -> ให้ข้ามขั้นตอนนี้ไปเลย"
-        if: ${{ steps.cpr_step.outputs.pr_number }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # ใช้รหัสผ่านของระบบ
-        run: |
-          echo "กำลังทำการ Merge PR หมายเลข ${{ steps.cpr_step.outputs.pr_number }}..."
-          # ใช้คำสั่ง gh (GitHub CLI) เพื่อทำการ Merge เข้ากิ่ง main
-          gh pr merge ${{ steps.cpr_step.outputs.pr_number }} --merge --auto
+      # - name: Merge Pull Request
+      #   # บรรทัดนี้คือหัวใจสำคัญ! 
+      #   # "ถ้า steps.cpr_step มีเลข PR ส่งมา (แปลว่าไม่ซ้ำ) -> ให้ทำ"
+      #   # "ถ้าไม่มีเลขส่งมา (แปลว่าซ้ำ) -> ให้ข้ามขั้นตอนนี้ไปเลย"
+      #   if: ${{ steps.cpr_step.outputs.pr_number }}
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # ใช้รหัสผ่านของระบบ
+      #   run: |
+      #     echo "กำลังทำการ Merge PR หมายเลข ${{ steps.cpr_step.outputs.pr_number }}..."
+      #     # ใช้คำสั่ง gh (GitHub CLI) เพื่อทำการ Merge เข้ากิ่ง main
+      #     gh pr merge ${{ steps.cpr_step.outputs.pr_number }} --merge --auto
 
   # เพิ่มส่วนนี้ เหมือนให้ไฟล์นี้สามารถโทรหา auto delete เมื่อcreate-and-mergeทำงานเสร็จ
   call-delete-job:
