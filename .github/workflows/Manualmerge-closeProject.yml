@@ -1,0 +1,73 @@
+name: "Manual Merge Pull Request and Close Linked Issue"
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'ระบุหมายเลข Pull Request (เช่น 12)'
+        required: true
+        type: number
+
+      Issue_number:
+        description: 'ระบุหมายเลข Issue ที่ต้องการปิด (เช่น 34) [ถ้ามี]'
+        required: true
+        type: number
+
+      merge_method:
+        description: 'วิธี merge'
+        required: true
+        type: choice
+        options:
+          - squash
+          - merge
+          - rebase
+
+permissions:
+  pull-requests: write
+  contents: write
+  issues: write  # <--- [สำคัญมาก] ต้องขออนุญาตยุ่งกับ Issue ด้วย
+
+jobs:
+  manual-merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: แสดงข้อมูลคำสั่ง
+        run: |
+          echo "🔧 กำลังจะ merge PR #${{ github.event.inputs.pr_number }}"
+          echo "➡️ วิธี merge: ${{ github.event.inputs.merge_method }}"
+
+      # 1. สั่ง Merge PR
+      - name: Merge Pull Request (Manual)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge ${{ github.event.inputs.pr_number }} \
+            --${{ github.event.inputs.merge_method }} \
+            # --delete-branch
+
+      # 2. [ไม้ตาย] ค้นหาเลข Issue แล้วสั่งปิดทันที
+      - name: Force Close Linked Issue
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTTOKEN }}
+        run: |
+          echo "🔍 กำลังหาเลข Issue จากเนื้อหา PR..."
+          
+          # ดึงเนื้อหา Body ของ PR มาอ่าน
+          Issue_number=$(gh pr view ${{ github.event.inputs.Issue_number }} --json body -q .body)
+          
+          # ค้นหาเลขหลังคำว่า "closes #" (แกะเลขออกมา)
+          ISSUE_NUM=$(echo "$Issue_number" | grep -oE 'closes #[0-9]+' | grep -oE '[0-9]+' | head -n 1)
+
+          if [ -n "$ISSUE_NUM" ]; then
+            echo "✅ เจอแล้ว! Issue ที่ต้องปิดคือ #$ISSUE_NUM"
+            
+            # สั่งปิด Issue นั้นซะ!
+            gh issue close $ISSUE_NUM --comment "Auto-closed by Robot Merge 🤖"
+            echo "🎉 ปิดงานเรียบร้อย Project Update แล้ว!"
+          else
+            echo "⚠️ ไม่เจอคำว่า closes #... ใน PR นี้ เลยไม่ได้ปิด Issue"
+          fi
