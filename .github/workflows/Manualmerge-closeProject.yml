@@ -52,7 +52,7 @@ jobs:
       # 2. [ไม้ตาย] ค้นหาเลข Issue แล้วสั่งปิดทันที
       - name: Force Close Linked Issue
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECTTOKEN }}
         run: |
           echo "🔍 กำลังหาเลข Issue จากเนื้อหา PR..."
           
