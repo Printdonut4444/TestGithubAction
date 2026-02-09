@@ -8,6 +8,11 @@ on:
         required: true
         type: number
 
+      Issue_number:
+        description: 'ระบุหมายเลข Issue ที่ต้องการปิด (เช่น 34) [ถ้ามี]'
+        required: true
+        type: number
+
       merge_method:
         description: 'วิธี merge'
         required: true
@@ -52,10 +57,10 @@ jobs:
           echo "🔍 กำลังหาเลข Issue จากเนื้อหา PR..."
           
           # ดึงเนื้อหา Body ของ PR มาอ่าน
-          PR_BODY=$(gh pr view ${{ github.event.inputs.pr_number }} --json body -q .body)
+          Issue_number=$(gh pr view ${{ github.event.inputs.Issue_number }} --json body -q .body)
           
           # ค้นหาเลขหลังคำว่า "closes #" (แกะเลขออกมา)
-          ISSUE_NUM=$(echo "$PR_BODY" | grep -oE 'closes #[0-9]+' | grep -oE '[0-9]+' | head -n 1)
+          ISSUE_NUM=$(echo "$Issue_number" | grep -oE 'closes #[0-9]+' | grep -oE '[0-9]+' | head -n 1)
 
           if [ -n "$ISSUE_NUM" ]; then
             echo "✅ เจอแล้ว! Issue ที่ต้องปิดคือ #$ISSUE_NUM"
