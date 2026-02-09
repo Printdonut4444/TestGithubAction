@@ -29,7 +29,7 @@ on:
 permissions:
   pull-requests: write
   contents: write
-  repository-projects: write
+  # repository-projects: write
   
 jobs:
   manual-merge:
@@ -47,7 +47,7 @@ jobs:
 
       - name: Merge Pull Request (Manual)
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECTTOKEN }}
         run: |
           gh pr merge ${{ github.event.inputs.pr_number }} \
             --${{ github.event.inputs.merge_method }}
