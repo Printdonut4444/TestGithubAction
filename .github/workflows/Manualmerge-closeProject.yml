@@ -17,6 +17,7 @@ on:
         description: 'วิธี merge'
         required: true
         type: choice
+        default: 'merge'
         options:
           - squash
           - merge
@@ -39,6 +40,10 @@ jobs:
         run: |
           echo "🔧 กำลังจะ merge PR #${{ github.event.inputs.pr_number }}"
           echo "➡️ วิธี merge: ${{ github.event.inputs.merge_method }}"
+
+      # Edit commit
+      # delete Text All
+      # closes #Issue_number
 
       # 1. สั่ง Merge PR
       - name: Merge Pull Request (Manual)
