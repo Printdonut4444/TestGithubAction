@@ -430,7 +430,136 @@ jobs:
           if: github.event.inputs.delete_branch == 'yes'
           uses: ./.github/workflows/auto-delete.yml # ที่อยู่
           secrets: inherit
+-------------------------------------------------------------------------------------------------
   2.แบบที่ 2 (ทำเหมือนข้อที่ 1 แต่เปลี่ยนโค้ด)
-  
+    # auto-PR-closeProject.yml
+    name: Auto Create Pull Request and close Issue
+    on:
+      push:
+        branches-ignore:
+          - main
+      
+    jobs:
+      create-pull-request:
+        runs-on: ubuntu-latest
+        permissions: 
+          contents: write
+          pull-requests: write
+          statuses: write
+        outputs:
+          pr_number: ${{ steps.cpr_step.outputs.pr_number }}
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v4
+            with:
+              fetch-depth: 0
 
+          - name: Install GitHub CLI
+            run: |
+              sudo apt update
+              sudo apt install gh -y
 
+          # [แก้ไขใหม่] แกะแค่ตัวเลขออกมาอย่างเดียว (Clean & Clear)
+          - name: Extract Issue Number
+            id: extract
+            run: |
+              BRANCH_NAME="${{ github.ref_name }}"
+              # หาตัวเลขในชื่อ Branch
+              ISSUE_NUM=$(echo "$BRANCH_NAME" | grep -oE '[0-9]+' | head -n 1)
+              
+              if [ -n "$ISSUE_NUM" ]; then
+                echo "NUM=$ISSUE_NUM" >> $GITHUB_OUTPUT
+                echo "✅ เจอเลข Issue: $ISSUE_NUM"
+              else
+                echo "NUM=" >> $GITHUB_OUTPUT
+                echo "⚠️ ไม่เจอเลข Issue"
+              fi
+
+          # ขั้นตอนที่ 1: สร้าง PR
+          - name: Create Pull Request
+            id: cpr_step
+            uses: repo-sync/pull-request@v2
+            with:
+              source_branch: ${{ github.ref_name }}
+              destination_branch: "main"
+              pr_title: "PR: รวมงานจากเครื่องของคุณ #${{ steps.extract.outputs.NUM }}"
+              pr_body: |
+                สร้างและรวมร่างอัตโนมัติโดย GitHub Action 
+                closes #${{ steps.extract.outputs.NUM }}
+              github_token: ${{ secrets.GITHUB_TOKEN }}  
+        
+          # ขั้นตอนตรวจสอบ: เช็คว่ามีของใหม่ไหม?
+          - name: Check for changes
+            run: |
+              if [ -z "${{ steps.cpr_step.outputs.pr_number }}" ]; then
+                echo "⚠️ ไม่พบการเปลี่ยนแปลง (ไฟล์ซ้ำกัน)"
+                echo "จะไม่มีการ Merge เกิดขึ้น"
+              else
+                echo "✅ พบของใหม่! สร้าง PR หมายเลข ${{ steps.cpr_step.outputs.pr_number }} แล้ว"
+              fi
+
+    # Manualmerge-closeProject.yml
+    name: "Manual Merge Pull Request and Close Linked Issue"
+    on:
+      workflow_dispatch:
+        inputs:
+          pr_number:
+            description: 'ระบุหมายเลข Pull Request (เช่น 12)'
+            required: true
+            type: number
+
+          merge_method:
+            description: 'วิธี merge'
+            required: true
+            type: choice
+            options:
+              - squash
+              - merge
+              - rebase
+    permissions:
+      pull-requests: write
+      contents: write
+      issues: write  # <--- [สำคัญมาก] ต้องขออนุญาตยุ่งกับ Issue ด้วย
+    jobs:
+      manual-merge:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v4
+
+          - name: แสดงข้อมูลคำสั่ง
+            run: |
+              echo "🔧 กำลังจะ merge PR #${{ github.event.inputs.pr_number }}"
+              echo "➡️ วิธี merge: ${{ github.event.inputs.merge_method }}"
+
+          # 1. สั่ง Merge PR
+          - name: Merge Pull Request (Manual)
+            env:
+              GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            run: |
+              gh pr merge ${{ github.event.inputs.pr_number }} \
+                --${{ github.event.inputs.merge_method }} \
+                # --delete-branch
+
+          # 2. [ไม้ตาย] ค้นหาเลข Issue แล้วสั่งปิดทันที
+          - name: Force Close Linked Issue
+            env:
+              GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            run: |
+              echo "🔍 กำลังหาเลข Issue จากเนื้อหา PR..."
+              
+              # ดึงเนื้อหา Body ของ PR มาอ่าน
+              PR_BODY=$(gh pr view ${{ github.event.inputs.pr_number }} --json body -q .body)
+              
+              # ค้นหาเลขหลังคำว่า "closes #" (แกะเลขออกมา)
+              ISSUE_NUM=$(echo "$PR_BODY" | grep -oE 'closes #[0-9]+' | grep -oE '[0-9]+' | head -n 1)
+
+              if [ -n "$ISSUE_NUM" ]; then
+                echo "✅ เจอแล้ว! Issue ที่ต้องปิดคือ #$ISSUE_NUM"
+                
+                # สั่งปิด Issue นั้นซะ!
+                gh issue close $ISSUE_NUM --comment "Auto-closed by Robot Merge 🤖"
+                echo "🎉 ปิดงานเรียบร้อย Project Update แล้ว!"
+              else
+                echo "⚠️ ไม่เจอคำว่า closes #... ใน PR นี้ เลยไม่ได้ปิด Issue"
+              fi
