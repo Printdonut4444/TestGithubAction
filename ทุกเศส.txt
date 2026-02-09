@@ -331,5 +331,106 @@ jobs:
       uses: ./.github/workflows/auto-delete.yml # ที่อยู่
       secrets: inherit
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-9.closed Issue-Github Project Management
-ยังทำไม่ได้
+9.closed Issue-Github Project Management มีหลายแบบ
+  1.แบบที่ 1
+    # สร้าง issue>สร้าง branch > push branch ขึ้นแล้วให้ Auto PR
+    name: Auto Create Pull Request project Management
+    on:
+      push:
+        branches-ignore:
+          - 'main'
+          # - ''
+    jobs:
+      # Job 1: สร้าง PR และ Merge 
+      create-and-merge:
+        runs-on: ubuntu-latest
+        permissions: 
+          contents: write
+          pull-requests: write
+        outputs:
+          pr_number: ${{ steps.cpr_step.outputs.pr_number }}
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v4
+
+          - name: Create Pull Request
+            id: cpr_step
+            uses: repo-sync/pull-request@v2
+            with:
+              source_branch: "${{ github.ref_name }}" # ดึงชื่อ Branch มาใช้
+              destination_branch: "main"
+              pr_title: "PR: พัฒนาฟีเจอร์สำหรับ Issue #${{ github.ref_name }}"
+              # ใส่คำว่า closes # แล้วตามด้วยชื่อกิ่ง (ซึ่งเราจะตั้งเป็นตัวเลข)
+              pr_body: |
+                closes #${{ github.ref_name }}
+                สร้างและรวมร่างอัตโนมัติโดย GitHub Action
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+
+          # ขั้นตอนตรวจสอบ: เช็คว่ามีของใหม่ไหม?
+          - name: Check for changes
+            run: |
+              if [ -z "${{ steps.cpr_step.outputs.pr_number }}" ]; then
+                echo "⚠️ ไม่พบการเปลี่ยนแปลง (ไฟล์ซ้ำกัน)"
+                echo "จะไม่มีการ Merge เกิดขึ้น"
+              else
+                echo "✅ พบของใหม่! สร้าง PR หมายเลข ${{ steps.cpr_step.outputs.pr_number }} แล้ว"
+              fi
+    # ถ้าสร้าง PR สำเร็จ Status Project จะเปลี่ยน TODO > In Progess จากนั้นให้รัน Manual Merge แล้ว Status project จะเปลี่ยน In Progess > Done
+    name: "Robot: Manual Merge Pull Request"
+    on:
+      workflow_dispatch:
+        inputs:
+          pr_number:
+            description: 'ระบุหมายเลข Pull Request (เช่น 12)'
+            required: true
+            type: number
+
+          merge_method:
+            description: 'วิธี merge'
+            required: true
+            default: 'merge'
+            type: choice
+            options:
+              - merge
+              - squash
+              - rebase
+          delete_branch:
+            description: 'ลบสาขาหลังการรวมหรือไม่?'
+            required: true
+            default: 'no'
+            type: choice
+            options:
+              - no
+              - yes
+    permissions:
+      pull-requests: write
+      contents: write
+      # repository-projects: write
+    jobs:
+      manual-merge:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v4
+
+          - name: แสดงข้อมูลคำสั่ง
+            run: |
+              echo "🔧 กำลังจะ merge PR #${{ github.event.inputs.pr_number }}"
+              echo "➡️ วิธี merge: ${{ github.event.inputs.merge_method }}"
+              echo "👤 สั่งโดย: ${{ github.actor }}"
+
+          - name: Merge Pull Request (Manual)
+            env:
+              GH_TOKEN: ${{ secrets.PROJECTTOKEN }}
+            run: |
+              gh pr merge ${{ github.event.inputs.pr_number }} \
+                --${{ github.event.inputs.merge_method }}
+      call-delete-job:
+          needs: manual-merge
+          if: github.event.inputs.delete_branch == 'yes'
+          uses: ./.github/workflows/auto-delete.yml # ที่อยู่
+          secrets: inherit
+  2.แบบที่ 2 (ทำเหมือนข้อที่ 1 แต่เปลี่ยนโค้ด)
+  
+
+
