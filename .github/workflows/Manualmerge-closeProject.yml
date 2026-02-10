@@ -10,8 +10,9 @@ on:
 
       Issue_number:
         description: 'ระบุหมายเลข Issue ที่ต้องการปิด (เช่น 34) [ถ้ามี]'
-        required: true
+        required: false
         type: number
+        # default: '0'
 
       merge_method:
         description: 'วิธี merge'
