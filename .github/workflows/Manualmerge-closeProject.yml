@@ -66,33 +66,93 @@ jobs:
           PR_BODY=$(gh pr view ${{ github.event.inputs.pr_number }} --json body -q .body)
           
           # ค้นหาเลขหลังคำว่า "closes #" (แกะเลขออกมา)
-          # ISSUE_NUM=$(echo "$PR_BODY" | grep -oE 'closes #[0-9]+' | grep -oE '[0-9]+' | head -n 1)
+          #ISSUE_NUM=$(echo "$PR_BODY" | grep -oE 'closes #[0-9]+' | grep -oE '[0-9]+' | head -n 1)
           ISSUE_NUM=${{ github.event.inputs.Issue_number }}
 
-          # if [ -n "$ISSUE_NUM" ]; then
-          #   echo "✅ เจอแล้ว! Issue ที่ต้องปิดคือ #$ISSUE_NUM"
-          #   # สั่งปิด Issue นั้นซะ!
-          #   gh issue close $ISSUE_NUM --comment "Auto-closed by Robot Merge 🤖"
-          #   echo "🎉 ปิดงานเรียบร้อย Project Update แล้ว!"
-          # else
-          #   echo "⚠️ ไม่เจอคำว่า closes #... ใน PR นี้ เลยไม่ได้ปิด Issue"
-          # fi
-          
-          if [ -n "$ISSUE_NUM" ]; then
-              echo "✅ เจอแล้ว! Issue ที่ต้องปิดคือ #$ISSUE_NUM"
-              gh issue close $ISSUE_NUM --comment "Auto-closed by Robot Merge 🤖"
-              echo "🎉 ปิดงานเรียบร้อย Project Update แล้ว!"
+          if [ -n "$ISSUE_NUM" ] && [ "$ISSUE_NUM" != "0" ]; then
+              
+              # เช็คสถานะปัจจุบันของ Issue ก่อน
+              ISSUE_STATE=$(gh issue view $ISSUE_NUM --json state -q .state)
+              
+              # ถ้าสถานะเป็น OPEN เท่านั้นถึงจะสั่งปิด
+              if [ "$ISSUE_STATE" != "CLOSED" ]; then
+                  echo "✅ เจอแล้ว! Issue ที่ต้องปิดคือ #$ISSUE_NUM (สถานะปัจจุบัน: $ISSUE_STATE)"
+                  gh issue close $ISSUE_NUM --comment "Auto-closed by Robot Merge 🤖"
+                  echo "🎉 ปิดงานเรียบร้อย Project Update แล้ว!"
+              else
+                  echo "🔍 Issue จาก Input เป็น CLOSED → ค้นหาใน PR Body ต่อ..."
+                  ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE 'closes #[0-9]+' | grep -oE '[0-9]+' | head -n 1)
+
+                  if [ -n "$ISSUE_NUM" ]; then
+                      ISSUE_STATE=$(gh issue view $ISSUE_NUM --json state -q .state)
+
+                      if [ "$ISSUE_STATE" != "CLOSED" ]; then
+                          echo "✅ เจอจาก Body แล้ว! Issue ที่ต้องปิดคือ #$ISSUE_NUM"
+                          gh issue close $ISSUE_NUM --comment "Auto-closed by Robot Merge 🤖 (Found in PR Body)"
+                          echo "🎉 ปิดงานเรียบร้อย!"
+                      else
+                          echo "⚠️ ไม่เจอคำว่า closes #... ทั้งในระบบและใน PR Body เลยไม่ได้ปิด Issue"
+                      fi
+                  else
+                      echo "⚠️ ไม่เจอคำว่า closes #... ทั้งในระบบและใน PR Body เลยไม่ได้ปิด Issue"
+                  fi
+              fi
+        
           else
-              # ลองหาจาก Body ของ PR ดูบ้าง
-              echo "🔍 ไม่เจอในตัวแปรหลัก กำลังหาจาก PR Body..."
+              # ลองหาจาก Body ของ PR ดูบ้าง  
+              echo "🔍 ไม่เจอในตัวแปรหลัก หรือค่าเป็น 0 กำลังหาจาก PR Body..."
               ISSUE_NUM=$(echo "$PR_BODY" | grep -oE 'closes #[0-9]+' | grep -oE '[0-9]+' | head -n 1)
 
               if [ -n "$ISSUE_NUM" ]; then
-                  echo "✅ เจอจาก Body แล้ว! Issue ที่ต้องปิดคือ #$ISSUE_NUM"
-                  gh issue close $ISSUE_NUM --comment "Auto-closed by Robot Merge 🤖 (Found in PR Body)"
-                  echo "🎉 ปิดงานเรียบร้อย!"
+
+                  ISSUE_STATE=$(gh issue view $ISSUE_NUM --json state -q .state)
+
+                if [ "$ISSUE_STATE" = "CLOSED" ]; then
+                    echo "✅ (Body) ตรวจพบ Issue #$ISSUE_NUM สถานะเป็น CLOSED เรียบร้อยแล้ว"
+                else
+                    echo "✅ เจอจาก Body แล้ว! Issue ที่ต้องปิดคือ #$ISSUE_NUM"
+                    gh issue close $ISSUE_NUM --comment "Auto-closed by Robot Merge 🤖 (Found in PR Body)"
+                    echo "🎉 ปิดงานเรียบร้อย!"
+                fi
               else
                   # ถ้าหาจากทั้งสองที่แล้วไม่เจอจริงๆ
-                  echo "⚠️ ไม่เจอคำว่า closes #... ทั้งในระบบและใน PR Body เลยไม่ได้ปิด Issue"
+                  echo "⚠️ ไม่เจอคำว่า closes #... ทั้งในระบบและใน PR Body เลยไม่ได้ปิด Issue" 
               fi
           fi
+          #===============================================================================================
+          # echo "🔍 กำลังหาเลข Issue จากเนื้อหา PR..."
+          
+          # # ดึงเนื้อหา Body ของ PR มาอ่าน
+          # PR_BODY=$(gh pr view ${{ github.event.inputs.pr_number }} --json body -q .body)
+          
+          # # ค้นหาเลขหลังคำว่า "closes #" (แกะเลขออกมา)
+          # # ISSUE_NUM=$(echo "$PR_BODY" | grep -oE 'closes #[0-9]+' | grep -oE '[0-9]+' | head -n 1)
+          # ISSUE_NUM=${{ github.event.inputs.Issue_number }}
+
+          # # if [ -n "$ISSUE_NUM" ]; then
+          # #   echo "✅ เจอแล้ว! Issue ที่ต้องปิดคือ #$ISSUE_NUM"
+          # #   # สั่งปิด Issue นั้นซะ!
+          # #   gh issue close $ISSUE_NUM --comment "Auto-closed by Robot Merge 🤖"
+          # #   echo "🎉 ปิดงานเรียบร้อย Project Update แล้ว!"
+          # # else
+          # #   echo "⚠️ ไม่เจอคำว่า closes #... ใน PR นี้ เลยไม่ได้ปิด Issue"
+          # # fi
+          
+          # if [ -n "$ISSUE_NUM" ]; then
+          #     echo "✅ เจอแล้ว! Issue ที่ต้องปิดคือ #$ISSUE_NUM"
+          #     gh issue close $ISSUE_NUM --comment "Auto-closed by Robot Merge 🤖"
+          #     echo "🎉 ปิดงานเรียบร้อย Project Update แล้ว!"
+          # else
+          #     # ลองหาจาก Body ของ PR ดูบ้าง
+          #     echo "🔍 ไม่เจอในตัวแปรหลัก กำลังหาจาก PR Body..."
+          #     ISSUE_NUM=$(echo "$PR_BODY" | grep -oE 'closes #[0-9]+' | grep -oE '[0-9]+' | head -n 1)
+
+          #     if [ -n "$ISSUE_NUM" ]; then
+          #         echo "✅ เจอจาก Body แล้ว! Issue ที่ต้องปิดคือ #$ISSUE_NUM"
+          #         gh issue close $ISSUE_NUM --comment "Auto-closed by Robot Merge 🤖 (Found in PR Body)"
+          #         echo "🎉 ปิดงานเรียบร้อย!"
+          #     else
+          #         # ถ้าหาจากทั้งสองที่แล้วไม่เจอจริงๆ
+          #         echo "⚠️ ไม่เจอคำว่า closes #... ทั้งในระบบและใน PR Body เลยไม่ได้ปิด Issue"
+          #     fi
+          # fi
