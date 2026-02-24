@@ -13,16 +13,16 @@ jobs:
     permissions: 
       contents: write
       pull-requests: write
-    outputs:
+    outputs: #การเก็บค่าผลลัพธ์(ตัวแปร)ไว้ใช้ต่อ
       pr_number: ${{ steps.cpr_step.outputs.pr_number }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Create Pull Request
-        id: cpr_step
+        id: cpr_step # ตั้งชื่อ ID ให้ขั้นตอนนี้ว่า cpr_step เพื่อให้ขั้นตอนอื่นสามารถมาอ้างอิงข้อมูลจากตรงนี้ได้
         uses: repo-sync/pull-request@v2
-        with:
+        with: # การส่งข้อมูล (Parameters) ให้เครื่องมือนี้
           source_branch: "${{ github.ref_name }}" # ดึงชื่อ Branch มาใช้
           destination_branch: "main"
           pr_title: "PR: พัฒนาฟีเจอร์สำหรับ Issue #${{ github.ref_name }}"
@@ -31,6 +31,7 @@ jobs:
             closes #${{ github.ref_name }}
             สร้างและรวมร่างอัตโนมัติโดย GitHub Action
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          # ใช้กุญแจลับ (Token) ที่ GitHub สร้างให้ชั่วคราว เพื่อยืนยันตัวตนว่ามีสิทธิ์สร้าง PR
 
       - name: Check for changes
         run: |
